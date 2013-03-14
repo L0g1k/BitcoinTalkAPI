@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>BitcoinTalkAPI2</name>
+	<name>BitcoinTalkAPI</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -30,11 +30,5 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>com.google.appengine.eclipse.core.gaeNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>scraper</name>
-			<type>2</type>
-			<location>D:/workspace-bitcoin/BitcointalkScraper/src</location>
-		</link>
-	</linkedResources>
+	
 </projectDescription>
