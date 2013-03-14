@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://java.sun.com/xml/ns/javaee"
+xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+	<servlet>
+		<servlet-name>CategoryScraper</servlet-name>
+		<servlet-class>dev.bitcoin.bitcointalk.BitcoinTalkCategoryScraper</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CategoryScraper</servlet-name>
+		<url-pattern>/get-categories</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>BoardScraper</servlet-name>
+		<servlet-class>dev.bitcoin.bitcointalk.BitcoinTalkBoardScraper</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BoardScraper</servlet-name>
+		<url-pattern>/get-topics-from-board</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>TopicScraper</servlet-name>
+		<servlet-class>dev.bitcoin.bitcointalk.BitcoinTalkTopicScraper</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>TopicScraper</servlet-name>
+		<url-pattern>/get-posts-from-topic</url-pattern>
+	</servlet-mapping>
+	 <listener>
+        <listener-class>dev.bitcoin.bitcointalk.ScraperInit</listener-class>
+    </listener>
+    <filter>
+        <filter-name>ObjectifyFilter</filter-name>
+        <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>
+	</filter>
+	<filter-mapping>
+    	<filter-name>ObjectifyFilter</filter-name>
+    	<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<servlet>
+    <servlet-name>Jersey REST Service</servlet-name>
+    <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+    <init-param>
+      <param-name>com.sun.jersey.config.property.packages</param-name>
+      <param-value>dev.bitcoin.bitcointalk</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Jersey REST Service</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+</web-app>
