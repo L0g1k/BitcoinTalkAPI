@@ -21,6 +21,8 @@ import dev.bitcoin.bitcointalk.model.appengine.TopicPage;
  */
 public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 
+	private static final int postsPerPage = 40;
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -29,13 +31,20 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 		List<Post> appenginePosts = new ArrayList<Post>();
 		final int pageCount = scraper.getPages(topicId);
 		List<TopicPage> pages = new ArrayList<TopicPage>(pageCount);
-		int totalPostsSeen = 0;
+		
+		// If a topic is new, start from the beginning. If it's old, then start from the last page and just scrape
+		// it from the beginning.
+		
+		// Eg. If only 1 page, reset the post count to 0. If 6 pages, start from a post count of 6 * 40.
+		int totalPostsSeen = (topic.getPageCount() - 1) * postsPerPage;
+		
 		if(pageCount > 50) {
 			System.out.println("Not downloading this topic " + topicId);
 			return;
 		}
-		
-		for (int i = 0; i < pageCount; i++) {
+		int wapVsDesktopFactor = postsPerPage / 5; // wap version has 5 posts per page.. we want 40
+		for (int i = (topic.getPageCount() -1) * wapVsDesktopFactor; i < pageCount; i++) {
+			System.out.println("Scraping WAP page " + i);
 			final int postCount = i*5;
 			String page = topicId + "." + postCount;
 			final List<dev.bitcoin.bitcointalk.model.Post> posts = scraper.getPosts(page);
@@ -44,7 +53,7 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 				appenginePosts.add(new Post(post.poster, post.content));
 			}
 			
-			if(postCount %40 == 0) {
+			if(postCount % postsPerPage == 0) {
 				createPage(appenginePosts, pages);
 				appenginePosts = new ArrayList<Post>();
 			}
@@ -54,15 +63,11 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 			createPage(appenginePosts, pages);
 		}
 		
-//		final List<dev.bitcoin.bitcointalk.model.Post> posts = scraper.getPosts(topicId);
-		
-		/*for (dev.bitcoin.bitcointalk.model.Post post : posts) 
-			appenginePosts.add(new Post(post.poster, post.content));*/
 		topic.postCount = totalPostsSeen;
 		topic.setBeingUpdated(false);
 		topic.setPages(pages);
 		topic.save();
-		//database.savePosts(topic, appenginePosts);
+		
 	}
 
 	protected void createPage(List<Post> appenginePosts, List<TopicPage> pages) {

@@ -45,6 +45,10 @@ public class Topic implements HasFreshness {
 		this.title = title;
 		this.topicId = topicId;
 	}
+	
+	public int getPageCount() {
+		return _pages != null ? _pages.size() : 0;
+	}
 
 	@OnSave
 	void saveDate() {
