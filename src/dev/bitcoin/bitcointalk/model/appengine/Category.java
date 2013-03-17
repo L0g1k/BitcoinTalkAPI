@@ -14,7 +14,7 @@ import com.googlecode.objectify.annotation.Load;
 @Entity
 public class Category {
 
-	@Id Long id;
+	@Id transient Long id;
 	String categoryId;
 	String title;
 	@Load transient List<Ref<Board>> _boards;

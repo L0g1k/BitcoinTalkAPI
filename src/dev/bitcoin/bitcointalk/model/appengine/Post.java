@@ -16,7 +16,7 @@ public class Post {
 		this.content = content;
 	}
 	
-	@Id Long id;
+	@Id transient Long id;
 	String poster;
 	String content;
 	@Unindex Date dateLastUpdated;

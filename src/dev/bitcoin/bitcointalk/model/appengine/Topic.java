@@ -5,6 +5,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.Transient;
@@ -30,8 +31,6 @@ public class Topic implements HasFreshness {
 	@Transient public Collection<TopicPage> pages;
 	@Unindex public int postCount;
 	@Load transient List<Ref<TopicPage>> _pages;
-	//@Load transient List<Ref<Post>> _posts;
-	//public Collection<Post> posts;
 	public String parentBoardName;
 	@Transient
 	public TopicPage requestedPage;
@@ -40,7 +39,7 @@ public class Topic implements HasFreshness {
 	@Transient int numberPages;
 	@Transient static int freshness = 60*1000; // 60 Seconds
 	
-	public Topic() {}
+	public Topic() { numberPages = getPageCount(); }
 	public Topic(String title, String topicId) {
 		this.title = title;
 		this.topicId = topicId;
@@ -94,6 +93,10 @@ public class Topic implements HasFreshness {
 	
 	public void loadPages() {
 		pages = getPages();
+		Iterator<TopicPage> iterator = pages.iterator();
+		for (int i = 0; i < pages.size(); i++) {
+			iterator.next().pageId = String.valueOf(i + 1);
+		}
 	}
 	
 	public void loadLastPage() {
@@ -118,10 +121,10 @@ public class Topic implements HasFreshness {
 			previousPageLink = pageIndex - 1;
 		}
 		requestedPage.loadPosts();
-		numberPages = _pages.size();
+		
 	}
 	
-	private Collection<TopicPage> getPages() {
+	public Collection<TopicPage> getPages() {
 		if(_pages == null)
 			return new ArrayList<TopicPage>();
 		
