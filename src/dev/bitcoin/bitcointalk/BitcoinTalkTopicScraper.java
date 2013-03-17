@@ -24,15 +24,19 @@ import dev.bitcoin.bitcointalk.model.appengine.TopicPage;
  */
 public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 
-	private static final int postsPerPage = 20;
-
+	private static final int WAP_POSTS_PER_PAGE = 5; // Observed from the BitcoinTalk WAP interface
+	private static final int LARGE_TOPIC_PAGE_LIMIT = 10; // We choose this. It's the number of (desktop) pages which should be considered 'large'
+	private static final int POSTS_PER_PAGE = 20; // Observed from the BitcoinTalk desktop interface
+	// We're scraping the WAP page, but sometimes we want to think in terms of desktop pages so this helps to convert between them.
+	private static final int WAP_DESKTOP_PAGE_FACTOR = POSTS_PER_PAGE / WAP_POSTS_PER_PAGE;
+	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
 		String topicId = req.getParameter("topicId");
 		Topic topic = database.getTopic(topicId, false);
-		if(topic == null)
-			topic = new Topic("Unknown title", topicId);
+		/*if(topic == null)
+			topic = new Topic("Unknown title", topicId);*/ // Uncomment to test topic scraping logic even with an empty database.
 		List<TopicPage> pages = new ArrayList<TopicPage>(topic.getPages());
 		TopicPage lastPage = null;
 		
@@ -46,24 +50,23 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 		final int pageCountWAP = scraper.getPages(topicId);
 		
 		// Eg. If only 1 page, reset the post count to 0. If 6 pages, start from a post count of 5 * 40 and re-scrape the entire 6th page
-		int totalPostsSeen = (topic.getPageCount() - 1) * postsPerPage;
+		int wapStartPage = topic.getPageCount() == 0 ? 0 : (topic.getPageCount() - 1) * WAP_DESKTOP_PAGE_FACTOR;
+		int totalPostsSeen = (topic.getPageCount() - 1) * POSTS_PER_PAGE;
 		
+		// Implement 'large' topic logic
 		boolean skinny = false;
-		if(pageCountWAP > 50 && topic.getPages().isEmpty()) {
+		if(pageCountWAP > LARGE_TOPIC_PAGE_LIMIT * WAP_DESKTOP_PAGE_FACTOR && topic.getPages().isEmpty()) {
 			System.out.println("Performing partial download of unseen large topic " + topicId);
 			skinny = true;
 		}
 		
-		int wapVsDesktopFactor = postsPerPage / 5; // wap version has 5 posts per page.. we want 40
-		
-		int wapStartPage = topic.getPageCount() == 0 ? 0 : (topic.getPageCount() - 1) * wapVsDesktopFactor;
-		
+		// Actually scrape the pages
 		for (int i = wapStartPage; i < pageCountWAP; i++) {
-			int twoPages = 2*wapVsDesktopFactor;
+			int twoPages = 2 * WAP_DESKTOP_PAGE_FACTOR;
 			boolean startOrEnd = i < twoPages || i > pageCountWAP - twoPages;
+			final int postCount = i*5;
 			if(!skinny || startOrEnd) {
 				System.out.println("Scraping WAP page " + i);
-				final int postCount = i*5;
 				String page = topicId + "." + postCount;
 				final List<dev.bitcoin.bitcointalk.model.Post> posts = scraper.getPosts(page);
 				for (dev.bitcoin.bitcointalk.model.Post post : posts) {
@@ -71,10 +74,13 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 					appenginePosts.add(new Post(post.poster, post.content));
 				}
 				
-				if(postCount % postsPerPage == 0) {
-					createPage(appenginePosts, pages);
-					appenginePosts = new ArrayList<Post>();
-				}
+			} else {
+				// Fake scraping the WAP page if large topic mode
+				totalPostsSeen+=5;
+			}
+			if(postCount % POSTS_PER_PAGE == 0) {
+				createPage(appenginePosts, pages);
+				appenginePosts = new ArrayList<Post>();
 			}
 		}
 		
@@ -90,7 +96,6 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 		}
 		topic.setPages(pages);
 		topic.save();
-		
 		
 	}
 	
