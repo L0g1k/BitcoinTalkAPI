@@ -27,7 +27,7 @@ public class Topic implements HasFreshness {
 	@Index public String topicId;
 	@Unindex Date dateLastUpdated;
 	@Unindex public String parentBoardId;
-	@Unindex private transient boolean isBeingUpdated;
+	@Unindex boolean isBeingUpdated = true;
 	@Transient public Collection<TopicPage> pages;
 	@Unindex public int postCount;
 	@Load transient List<Ref<TopicPage>> _pages;

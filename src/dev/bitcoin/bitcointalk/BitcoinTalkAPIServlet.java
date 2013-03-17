@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -61,7 +62,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 				board.boardId = makeLink("/v1/boards/" + board.boardId);
 			}
 		}
-		return asHTML(categories);
+		return Response.ok(asHTML(categories)).build();
 	}
 	
 	@GET
@@ -72,15 +73,14 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		setHeaders(servletResponse);
 		final Board board = database.getBoard(boardId, true);
 		if(board != null) {
-			if(board.isUnripe()) {
-				return Response.status(202).entity("The board was found, but it's topics haven't yet been downloaded. Please try again in 2-5 minutes").build();
-			}
+			ResponseBuilder response = board.isUnripe() ? Response.status(202) : Response.ok();
 			board.loadTopics();
 			Collection<Topic> topics = board.getTopics();
 			for (Topic topic : topics) {
 				topic.topicId = "/v1/topics/" + topic.topicId;
 			}
-			return Response.ok(new Gson().toJson(board)).build();
+			
+			return response.entity((new Gson().toJson(board))).build();
 		} else {
 			return Response.status(404).build();
 		}
@@ -94,15 +94,13 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		setHeaders(servletResponse);
 		final Board board = database.getBoard(boardId, true);
 		if(board != null) {
-			if(board.isUnripe()) {
-				return Response.status(202).entity("The board was found, but it's topics haven't yet been downloaded. Please try again in 2-5 minutes").build();
-			}
+			ResponseBuilder response = board.isUnripe() ? Response.status(202) : Response.ok();
 			board.loadTopics();
 			Collection<Topic> topics = board.getTopics();
 			for (Topic topic : topics) {
 				topic.topicId = makeLink("/v1/topics/" + topic.topicId);
 			}
-			return asHTML(board);
+			return response.entity(asHTML(board)).build();
 		} else {
 			return Response.status(404).build();
 		}
@@ -120,21 +118,18 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		final Topic topic = database.getTopic(topicId, true);
 		
 		if(topic != null) {
-			if(topic.isUnripe()) {
-				return Response.status(202).entity("The topic was found, but it's posts haven't yet been downloaded. Please try again in 2-5 minutes").build();
-			} else {
-				Collection<TopicPage> pages = topic.getPages();
-				for (TopicPage topicPage : pages) {
-					topicPage.pageId = "/v1/topics/" + topicId + "/pages/" + topicPage.pageId;
-				}
-				 if (pageId != null) {
-					if(pageId.equals("latest")) 
-						topic.loadLastPage();
-					else
-						tryToLoadPage(pageId, topic);
-				}
-				return Response.ok(new Gson().toJson(topic)).build();
+			ResponseBuilder response = topic.isUnripe() ? Response.status(202) : Response.ok();
+			Collection<TopicPage> pages = topic.getPages();
+			for (TopicPage topicPage : pages) {
+				topicPage.pageId = "/v1/topics/" + topicId + "/pages/" + topicPage.pageId;
 			}
+			 if (pageId != null) {
+				if(pageId.equals("latest")) 
+					topic.loadLastPage();
+				else
+					tryToLoadPage(pageId, topic);
+			}
+			return response.entity((new Gson().toJson(topic))).build();
 		} else {
 			return Response.status(404).build();
 		}
@@ -152,9 +147,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		final Topic topic = database.getTopic(topicId, true);
 		
 		if(topic != null) {
-			if(topic.isUnripe()) {
-				return Response.status(202).entity("The topic was found, but it's posts haven't yet been downloaded. Please try again in 2-5 minutes").build();
-			} else {
+				ResponseBuilder response = topic.isUnripe() ? Response.status(202) : Response.ok();
 				topic.loadPages();
 				Collection<TopicPage> pages = topic.getPages();
 				for (TopicPage topicPage : pages) {
@@ -166,8 +159,8 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 					else
 						tryToLoadPage(pageId, topic);
 				}
-				return asHTML(topic);
-			}
+				return response.entity(asHTML(topic)).build();
+			
 		} else {
 			return Response.status(404).build();
 		}
@@ -234,7 +227,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		if(topic != null) {
 			topic.loadPageFromIndex(Integer.parseInt(pageId));
 			
-			return asHTML(topic.requestedPage);
+			return Response.ok(asHTML(topic.requestedPage)).build();
 		} else {
 			return Response.status(404).build();
 		}
@@ -243,9 +236,9 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		servletResponse.addHeader("Access-Control-Allow-Origin", "*"); 
 	}
 	
-	Response asHTML(Object object) {
+	String asHTML(Object object) {
 		String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(object);
-		return Response.ok().entity("<pre>" + json + "</pre>").build();
+		return "<pre>" + json + "</pre>";
 	}
 	
 	String makeLink(String href) {

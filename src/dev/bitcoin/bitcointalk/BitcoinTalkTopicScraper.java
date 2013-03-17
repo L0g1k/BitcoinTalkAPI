@@ -51,7 +51,7 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 		
 		// Eg. If only 1 page, reset the post count to 0. If 6 pages, start from a post count of 5 * 40 and re-scrape the entire 6th page
 		int wapStartPage = topic.getPageCount() == 0 ? 0 : (topic.getPageCount() - 1) * WAP_DESKTOP_PAGE_FACTOR;
-		int totalPostsSeen = (topic.getPageCount() - 1) * POSTS_PER_PAGE;
+		int totalPostsSeen = topic.getPageCount() == 0 ? 0 : (topic.getPageCount() - 1) * POSTS_PER_PAGE;
 		
 		// Implement 'large' topic logic
 		boolean skinny = false;

@@ -21,7 +21,7 @@ public class Board implements HasFreshness {
 	@Id transient Long id;
 	@Index public String boardId;
 	@Unindex public String title;
-	private transient boolean isBeingUpdated;
+	@Unindex boolean isBeingUpdated;
 	@Unindex Date dateLastUpdated;
 	static int freshness = 1000 * 60 * 5; // 5 minutes
 
