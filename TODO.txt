@@ -1,10 +1,10 @@
-API test links
-Format / edit BTC Talk post
-Test multiple fetches in production
+Add scraped child boards to data model
+
+sticky topic support in client
 Grab first 2-3 wap pages of topics
 
 Limitations
 
-Page size is fixed to 40
+Page size is fixed to 20
 There is no XML, only JSON
 Old content not scraped; extremely large topics not fully scraped

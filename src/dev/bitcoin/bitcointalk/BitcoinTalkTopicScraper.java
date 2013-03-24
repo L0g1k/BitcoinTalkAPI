@@ -40,8 +40,7 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 		List<TopicPage> pages = new ArrayList<TopicPage>(topic.getPages());
 		TopicPage lastPage = null;
 		
-		// If a topic is new, start from the beginning. If it's old, then start from the last page and just scrape
-		// it from the beginning.
+		// If a topic is new, start from the beginning. If it's old, then start from the last page and re-scrape it from there.
 		if(pages.size() > 1) {
 			lastPage = pages.get(pages.size()-1);
 		}
@@ -55,7 +54,7 @@ public class BitcoinTalkTopicScraper extends BitcoinTalkScaperServletBase {
 		
 		// Implement 'large' topic logic
 		boolean skinny = false;
-		if(pageCountWAP > LARGE_TOPIC_PAGE_LIMIT * WAP_DESKTOP_PAGE_FACTOR && topic.getPages().isEmpty()) {
+		if(pageCountWAP > LARGE_TOPIC_PAGE_LIMIT * WAP_DESKTOP_PAGE_FACTOR) {
 			System.out.println("Performing partial download of unseen large topic " + topicId);
 			skinny = true;
 		}

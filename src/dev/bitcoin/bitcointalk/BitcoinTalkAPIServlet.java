@@ -119,6 +119,8 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		
 		if(topic != null) {
 			ResponseBuilder response = topic.isUnripe() ? Response.status(202) : Response.ok();
+			topic.loadPages();
+			topic.loadPageCount();
 			Collection<TopicPage> pages = topic.getPages();
 			for (TopicPage topicPage : pages) {
 				topicPage.pageId = "/v1/topics/" + topicId + "/pages/" + topicPage.pageId;
@@ -149,6 +151,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		if(topic != null) {
 				ResponseBuilder response = topic.isUnripe() ? Response.status(202) : Response.ok();
 				topic.loadPages();
+				topic.loadPageCount();
 				Collection<TopicPage> pages = topic.getPages();
 				for (TopicPage topicPage : pages) {
 					topicPage.pageId = makeLink("/v1/topics/" + topicId + "/pages/" + topicPage.pageId);
@@ -202,11 +205,9 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 			@PathParam("topicId") String topicId,
 			@PathParam("pageId") String pageId) throws JsonIOException, IOException {
 		setHeaders(servletResponse);
-		
 		final Topic topic = database.getTopic(topicId, true);
 		if(topic != null) {
 			topic.loadPageFromIndex(Integer.parseInt(pageId));
-			
 			return Response.ok(new Gson().toJson(topic.requestedPage)).build();
 		} else {
 			return Response.status(404).build();

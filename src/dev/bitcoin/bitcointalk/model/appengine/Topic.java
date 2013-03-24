@@ -11,6 +11,7 @@ import java.util.List;
 import javax.persistence.Transient;
 
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -20,6 +21,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 
 @Entity
+@Cache(expirationSeconds=60)
 public class Topic implements HasFreshness {
 
 	@Id transient Long id;
@@ -38,13 +40,23 @@ public class Topic implements HasFreshness {
 	@Transient int nextPageLink;
 	@Transient int numberPages;
 	@Transient static int freshness = 60*1000; // 60 Seconds
-	
-	public Topic() { numberPages = getPageCount(); }
+	// 'Wizard of oz' pattern ;)
+	private static int[] stickyTopics = {
+		// General & Newbies
+		7269, 154516, 20333, 15958,
+		33835, 15672, 15911, 86580, 
+		128314, 126798, 17240, 20292,
+		15918, 86580
+	};
+	public Topic() { }
 	public Topic(String title, String topicId) {
 		this.title = title;
 		this.topicId = topicId;
 	}
 	
+	public void loadPageCount() {
+		numberPages = getPageCount(); 
+	}
 	public int getPageCount() {
 		return _pages != null ? _pages.size() : 0;
 	}
@@ -110,12 +122,12 @@ public class Topic implements HasFreshness {
 	public void loadPageFromIndex(final int pageIndex) {
 		final Ref<TopicPage> pageKey = _pages.get(pageIndex-1);
 		this.requestedPage = pageKey.get();
-		if(pageIndex >= _pages.size() - 1) {
+		if(pageIndex >= _pages.size()) {
 			nextPageLink = -1;
 		} else {
 			nextPageLink = pageIndex + 1;
 		}
-		if(pageIndex == 0 || _pages.size() == 1) {
+		if(pageIndex == 1 || _pages.size() == 1) {
 			previousPageLink = -1;
 		} else {
 			previousPageLink = pageIndex - 1;
