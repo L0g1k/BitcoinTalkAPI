@@ -38,7 +38,7 @@ public class BitcoinTalkCategoryScraper extends BitcoinTalkScaperServletBase {
 			return;
 		} 
 		List<Category> appengineCategories = new ArrayList<Category>();
-		final List<dev.bitcoin.bitcointalk.model.Category> categories = scraper.getCategories(false);
+		final List<dev.bitcoin.bitcointalk.model.Category> categories = scraper.getCategories();
 		
 		for (dev.bitcoin.bitcointalk.model.Category category : categories) 
 			convertCategory(appengineCategories, category);
@@ -55,10 +55,29 @@ public class BitcoinTalkCategoryScraper extends BitcoinTalkScaperServletBase {
 		final List<CategoryBoard> boards = category.getBoards();
 		final List<Board> appEngineBoards = new ArrayList<Board>();
 		for (CategoryBoard categoryBoard : boards) {
+			Board toAdd;
 			final Board oldBoard = database.getBoard( categoryBoard.boardId, false);
-			appEngineBoards.add(oldBoard == null ? new Board(categoryBoard.boardName, categoryBoard.boardId) : oldBoard);
+			if(oldBoard == null) {
+				toAdd = new Board(categoryBoard.boardName, categoryBoard.boardId);
+				addChildBoards(categoryBoard, toAdd);
+			} else {
+				toAdd = oldBoard;
+			}
+			appEngineBoards.add(toAdd);
 		}
+		
 		appengineCategory.setBoards(appEngineBoards);
 		appengineCategories.add(appengineCategory);
+	}
+
+	private void addChildBoards(CategoryBoard categoryBoard, Board parent) {
+		List<CategoryBoard> childBoards = categoryBoard.childBoards;
+		if(childBoards != null && !childBoards.isEmpty()) {
+			List<Board> childBoardsAppEngine = new ArrayList<Board>();
+			for (CategoryBoard childBoard : childBoards) {
+				childBoardsAppEngine.add(new Board(childBoard.boardName, childBoard.boardId));
+			}
+			parent.setChildBoards(childBoardsAppEngine);
+		}
 	}
 }

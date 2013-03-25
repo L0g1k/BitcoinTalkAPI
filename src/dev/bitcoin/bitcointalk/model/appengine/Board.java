@@ -15,6 +15,8 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Unindex;
 
+import dev.bitcoin.bitcointalk.model.CategoryBoard;
+
 @Entity
 public class Board implements HasFreshness {
 
@@ -28,7 +30,11 @@ public class Board implements HasFreshness {
 	@Load
 	transient List<Ref<Topic>> _topics;
 	public Collection<Topic> topics;
-
+	
+	@Load
+	transient List<Ref<Board>> _childBoards;
+	public Collection<Board> childBoards;
+	
 	public Board() {
 	}
 
@@ -40,14 +46,25 @@ public class Board implements HasFreshness {
 	public void loadTopics() {
 		this.topics = getTopics();
 	}
-
+	
+	public void loadChildren() {
+		this.childBoards = getChildren();
+	}
+	
 	public Collection<Topic> getTopics() { 
 		if (_topics == null) 
 			return new ArrayList<Topic>(); 
 		
 		return ofy().load().refs(_topics).values();
 	}
-
+	
+	public Collection<Board> getChildren() { 
+		if (_childBoards == null) 
+			return new ArrayList<Board>(); 
+		
+		return ofy().load().refs(_childBoards).values();
+	}
+	
 	@OnSave
 	void saveDate() {
 		if(_topics != null)
@@ -72,7 +89,16 @@ public class Board implements HasFreshness {
 		}
 		this._topics = boardRefs;
 	}
-
+	
+	public void setChildBoards(List<Board> childBoardsAppEngine) {
+		ofy().save().entities(childBoardsAppEngine).now();
+		List<Ref<Board>> boardRefs = new ArrayList<Ref<Board>>();
+		for (Board childBoard : childBoardsAppEngine) {
+			boardRefs.add(Ref.create(childBoard));
+		}
+		this._childBoards = boardRefs;
+	}
+	
 	@Override
 	public String getId() {
 		return boardId;
@@ -95,4 +121,6 @@ public class Board implements HasFreshness {
 	public boolean isUnripe() {
 		return _topics == null || _topics.size() == 0;
 	}
+
+	
 }

@@ -1,6 +1,6 @@
 Add scraped child boards to data model
 
-sticky topic support in client
+Sticky topic support in client
 Grab first 2-3 wap pages of topics
 
 Limitations

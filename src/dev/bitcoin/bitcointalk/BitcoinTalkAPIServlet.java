@@ -44,6 +44,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		for (Category category : categories) {
 			category.boards = category.getBoards();
 			for (Board board : category.boards) {
+				board.loadChildren();
 				board.boardId = "/v1/boards/" + board.boardId;
 			}
 		}
@@ -59,6 +60,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		for (Category category : categories) {
 			category.boards = category.getBoards();
 			for (Board board : category.boards) {
+				board.loadChildren();
 				board.boardId = makeLink("/v1/boards/" + board.boardId);
 			}
 		}
@@ -75,6 +77,7 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 		if(board != null) {
 			ResponseBuilder response = board.isUnripe() ? Response.status(202) : Response.ok();
 			board.loadTopics();
+			board.loadChildren();
 			Collection<Topic> topics = board.getTopics();
 			for (Topic topic : topics) {
 				topic.topicId = "/v1/topics/" + topic.topicId;
