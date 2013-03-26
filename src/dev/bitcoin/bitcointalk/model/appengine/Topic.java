@@ -39,14 +39,25 @@ public class Topic implements HasFreshness {
 	@Transient int previousPageLink;
 	@Transient int nextPageLink;
 	@Transient int numberPages;
+	boolean sticky;
 	@Transient static int freshness = 60*1000; // 60 Seconds
 	// 'Wizard of oz' pattern ;)
-	private static int[] stickyTopics = {
-		// General & Newbies
-		7269, 154516, 20333, 15958,
-		33835, 15672, 15911, 86580, 
+	@Transient private static transient int[] stickyTopics = {
+		// General
+		156942, 7269, 154516, 20333,  
+		// Newbies
+		15958, 33835, 15672, 15911, 86580, 
 		128314, 126798, 17240, 20292,
-		15918, 86580
+		15918, 86580,
+		// Mining
+		123726, 9430, 16169,
+		// Dev & Tech
+		4571, 15527, 41718, 151,
+		// Speculation
+		131829, 130925,
+		// Tech Support
+		323
+		//
 	};
 	public Topic() { }
 	public Topic(String title, String topicId) {
@@ -100,6 +111,19 @@ public class Topic implements HasFreshness {
 	}
 	
 	public void save() {
+		int id = 0;
+		try {
+			id = Integer.valueOf(topicId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			sticky = false;
+		}
+		for (int i = 0; i < stickyTopics.length; i++) {
+			if(stickyTopics[i] == id) {
+				sticky = true;
+				break;
+			}
+		}
 		ofy().save().entity(this).now();
 	}
 	
