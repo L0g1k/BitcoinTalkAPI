@@ -10,40 +10,72 @@ import dev.bitcoin.bitcointalk.model.appengine.Category;
 import dev.bitcoin.bitcointalk.model.appengine.HasFreshness;
 import dev.bitcoin.bitcointalk.model.appengine.Topic;
 import dev.bitcoin.bitcointalk.model.appengine.TopicPage;
+import dev.bitcoin.bitcointalk.scraper.BoardScraper;
+import dev.bitcoin.bitcointalk.scraper.TopicScraper;
 
 public class Database {
 	
 	ScraperQueue scraperQueue = new ScraperQueue();
-	
+	BoardScraper boardScraper = new BoardScraper(this);
+	TopicScraper topicScraper = new TopicScraper(this);
+
+	protected final BitcoinTalkWAPScraper scraper = new BitcoinTalkWAPScraper();
+
 	public List<Category> getCategories() {
 		return ofy().load().type(Category.class).list();
 	}
 	
 	/**
-	 * Set checkUpdate to false if you're not sure.
+	 * Get the board contents. In the odd case that there isn't any data, perform a quick
+	 * 'in-place' scrape so that the user will get the content. 
 	 * 
-	 * @param boardId
-	 * @param checkUpdate
+	 * 
+	 * @param boardId 
+	 * @param checkUpdate set true to maybe queue a scrape of the board 
+	 * contents if they are too old. Set to false if you're not sure
 	 * @return
 	 */
-	Board getBoard(String boardId, boolean checkUpdate) {
+	public Board getBoard(String boardId, boolean checkUpdate) {
 		final Board board = ofy().load().type(Board.class).filter("boardId", boardId).first().get();
-		if(board != null && checkUpdate)
+		if(board == null) 
+			return null;
+		
+		if(board.isUnripe()) 
+			return singleFill(board);
+		else if(checkUpdate)
 			checkUpdate(board);
+		
 		return board;
 	}
+	
+	private Board singleFill(Board unripeBoard) {
+		return boardScraper.scrapeBoard(unripeBoard);
+	}
+
 	/**
-	 * Set checkUpdate to false if you're not sure.
+	 * Get the topic contents. In the odd case that there isn't any data, perform a quick
+	 * 'in-place' scrape so that the user will get the content. 
 	 * 
-	 * @param topicId
-	 * @param checkUpdate
+	 * 
+	 * @param boardId 
+	 * @param checkUpdate set true to maybe queue a scrape of the board 
+	 * contents if they are too old. Set to false if you're not sure
 	 * @return
 	 */
-	Topic getTopic(String topicId, boolean checkUpdate) {
+	public Topic getTopic(String topicId, boolean checkUpdate) {
 		final Topic topic = ofy().load().type(Topic.class).filter("topicId", topicId).first().get();
-		if(topic != null && checkUpdate)
+		if(topic == null)
+			return null;
+		
+		if(topic.isUnripe())
+			return singleFill(topic);
+		else if(checkUpdate)
 			checkUpdate(topic);
 		return topic;
+	}
+	
+	private Topic singleFill(Topic unripeTopic) {
+		return topicScraper.scrapeTopic(unripeTopic);
 	}
 	
 	private void checkUpdate(HasFreshness object) {
@@ -76,7 +108,7 @@ public class Database {
 	}
 	
 	public void saveTopics(Board board, List<Topic> topics) {
-		log("Saving topics list");
+		log("Saving topics list (async)");
 		if(board != null) {
 			board.setTopics(topics);
 			ofy().save().entity(board);
@@ -93,6 +125,10 @@ public class Database {
 
 	public TopicPage getPage(String pageId) {
 		return ofy().load().type(TopicPage.class).id(Long.valueOf(pageId)).get();
+	}
+
+	public List<Board> getAllBoards() {
+		return ofy().load().type(Board.class).list();
 	}
 
 

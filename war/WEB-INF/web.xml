@@ -28,6 +28,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>TopicScraper</servlet-name>
 		<url-pattern>/get-posts-from-topic</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>PrimingServlet</servlet-name>
+		<servlet-class>dev.bitcoin.bitcointalk.admin.PrimingServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PrimingServlet</servlet-name>
+		<url-pattern>/admin/prime</url-pattern>
+	</servlet-mapping>
 	 <listener>
         <listener-class>dev.bitcoin.bitcointalk.ScraperInit</listener-class>
     </listener>
@@ -52,6 +60,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-name>Jersey REST Service</servlet-name>
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
+   <security-constraint>
+        <web-resource-collection>
+            <url-pattern>/admin/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>

@@ -15,8 +15,6 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Unindex;
 
-import dev.bitcoin.bitcointalk.model.CategoryBoard;
-
 @Entity
 public class Board implements HasFreshness {
 
@@ -114,8 +112,15 @@ public class Board implements HasFreshness {
 		this.isBeingUpdated = updated;
 	}
 
+	public void save(boolean async) {
+		if(async)
+			ofy().save().entities(this);
+		else
+			ofy().save().entities(this).now();
+	}
+	
 	public void save() {
-		ofy().save().entities(this).now();
+		save(false);
 	}
 
 	public boolean isUnripe() {

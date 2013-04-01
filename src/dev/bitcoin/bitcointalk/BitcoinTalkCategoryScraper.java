@@ -29,6 +29,7 @@ public class BitcoinTalkCategoryScraper extends BitcoinTalkScaperServletBase {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
 		if(req.getParameter("delete") != null) {
 			deleteAll(Post.class);
 			deleteAll(TopicPage.class);

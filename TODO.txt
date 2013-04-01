@@ -1,4 +1,3 @@
-Sticky topic support in client
 Grab first 2-3 wap pages of topics
 What to do about sub-sub boards?? (Mining/Hardware/Custom Hardware
 Limitations

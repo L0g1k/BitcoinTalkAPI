@@ -82,7 +82,6 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 			for (Topic topic : topics) {
 				topic.topicId = "/v1/topics/" + topic.topicId;
 			}
-			
 			return response.entity((new Gson().toJson(board))).build();
 		} else {
 			return Response.status(404).build();

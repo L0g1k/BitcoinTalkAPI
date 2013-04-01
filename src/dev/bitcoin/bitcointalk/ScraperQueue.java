@@ -14,11 +14,21 @@ public class ScraperQueue {
 		
 	}
 	
+	/**
+	 * Add a task to the task queue to scrape the topics in this board
+	 * 
+	 * @param boardId
+	 */
 	public void scrapeBoard(String boardId) {
 		log("Updating board " + boardId);
 		queue.add(withUrl("/get-topics-from-board").param("boardId", boardId).method(Method.GET));
 	}
 	
+	/**
+	 * Add a task to the task queue to scrape the posts in this topic
+	 * 
+	 * @param boardId
+	 */
 	public void scrapeTopic(String topicId) {
 		log("Updating topic " + topicId);
 		queue.add(withUrl("/get-posts-from-topic").param("topicId", topicId).method(Method.GET));
