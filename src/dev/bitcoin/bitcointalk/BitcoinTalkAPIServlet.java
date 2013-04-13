@@ -53,13 +53,16 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 				formParams.getFirst("password"));
 	}
 	
-	@POST
+	@GET
 	@Path("/pmlist")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces("application/json")
-	public void pms(@Context HttpServletResponse servletResponse, MultivaluedMap<String, String> formParams) throws IOException {
+	public void pms(@Context HttpServletResponse servletResponse, 
+			@QueryParam("username") String username, 
+			@QueryParam("password") String password) throws IOException {
 		BitcoinTalkPostMan postMan = new BitcoinTalkPostMan();
-		List<Post> pm = postMan.getPM(formParams.getFirst("smfCookie"));
+		List<Post> pm = postMan.getPM(
+				username, 
+				password);
 		new Gson().toJson(pm, servletResponse.getWriter());
 	}
 	

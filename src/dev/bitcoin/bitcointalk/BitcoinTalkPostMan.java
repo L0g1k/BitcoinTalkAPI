@@ -116,7 +116,7 @@ public class BitcoinTalkPostMan {
 		return null;
 	}
 	
-	public List<Post> getPM(String smfCookie) throws IllegalStateException, IOException {
+	public List<Post> getPM(String username, String password) throws IllegalStateException, IOException {
 		
 		List<Post> returnList = new ArrayList<Post>();
 		HTTPHeader cookie = getLoginCookie();
@@ -139,7 +139,7 @@ public class BitcoinTalkPostMan {
 		List<Element> allElements = element.getAllElements("a");
 		if(allElements.isEmpty() == false) {
 			String poster = allElements.get(0).getContent().toString();
-			List<Element> allElementsByClass = element.getAllElementsByClass("personamessage");
+			List<Element> allElementsByClass = element.getAllElementsByClass("personalmessage");
 			if(allElementsByClass.isEmpty() == false) {
 				String content = allElementsByClass.get(0).getContent().toString();
 				returnList.add(new Post(poster, content));
