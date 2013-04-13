@@ -35,7 +35,7 @@ public class BitcoinTalkPostMan {
 	URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
 	
 	public void sendPrivateMessage(String receipient, String subject, String message, String username, String password) throws IOException {
-		HTTPHeader cookie = getLoginCookie();
+		HTTPHeader cookie = getLoginCookie(username, password);
 		
 		try {
 			HTTPRequest req1 = new HTTPRequest(new URL(PM_READ), HTTPMethod.GET);
@@ -74,13 +74,13 @@ public class BitcoinTalkPostMan {
 		}
 		
 	}
-	private HTTPHeader getLoginCookie() throws MalformedURLException,
+	private HTTPHeader getLoginCookie(String username, String password) throws MalformedURLException,
 			UnsupportedEncodingException, IOException {
 		URL url = new URL(LOGIN);
 		HTTPRequest httpRequest = new HTTPRequest(url, HTTPMethod.POST);
 		MultipartEntity e = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-        e.addPart("user", new StringBody("Logik"));
-        e.addPart("passwrd", new StringBody("r2mhs8wb"));
+        e.addPart("user", new StringBody(username));
+        e.addPart("passwrd", new StringBody(password));
         e.addPart("cookielength", new StringBody("-1"));
         ServletHelper.addMultipartBodyToRequest(e, httpRequest);
       
@@ -119,7 +119,7 @@ public class BitcoinTalkPostMan {
 	public List<Post> getPM(String username, String password) throws IllegalStateException, IOException {
 		
 		List<Post> returnList = new ArrayList<Post>();
-		HTTPHeader cookie = getLoginCookie();
+		HTTPHeader cookie = getLoginCookie(username, password);
 		HTTPRequest request = new HTTPRequest(new URL(PM_LIST), HTTPMethod.GET);
 		if(cookie != null)
 			request.addHeader(cookie);
