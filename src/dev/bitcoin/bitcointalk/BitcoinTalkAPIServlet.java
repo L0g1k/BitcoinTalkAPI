@@ -11,11 +11,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -23,6 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 
+import dev.bitcoin.bitcointalk.model.Post;
 import dev.bitcoin.bitcointalk.model.appengine.Board;
 import dev.bitcoin.bitcointalk.model.appengine.Category;
 import dev.bitcoin.bitcointalk.model.appengine.Topic;
@@ -34,6 +38,30 @@ public class BitcoinTalkAPIServlet extends HttpServlet {
 	
 	Map<String, String> responseCache = new HashMap<String, String>();
 	Database database = new Database();
+	
+	@POST
+	@Path("/pm")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public void pm(MultivaluedMap<String, String> formParams) throws IOException {
+		BitcoinTalkPostMan postMan = new BitcoinTalkPostMan();
+		
+		postMan.sendPrivateMessage(
+				formParams.getFirst("receipient"), 
+				formParams.getFirst("subject"), 
+				formParams.getFirst("message"), 
+				formParams.getFirst("username"), 
+				formParams.getFirst("password"));
+	}
+	
+	@POST
+	@Path("/pmlist")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces("application/json")
+	public void pms(@Context HttpServletResponse servletResponse, MultivaluedMap<String, String> formParams) throws IOException {
+		BitcoinTalkPostMan postMan = new BitcoinTalkPostMan();
+		List<Post> pm = postMan.getPM(formParams.getFirst("smfCookie"));
+		new Gson().toJson(pm, servletResponse.getWriter());
+	}
 	
 	@GET
 	@Consumes("application/json")
